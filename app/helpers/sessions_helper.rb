@@ -1,0 +1,31 @@
+module SessionsHelper
+
+  def sign_in(user)
+    remember_token = User.new_remember_token
+    cookies.permanent[:remember_token] = remember_token
+    user.update_attribute(:remember_token, User.encrypt(remember_token))
+    self.current_user = user
+  end
+
+  def sign_out
+    self.current_user = nil
+    cookies.delete(:remember_token)
+  end
+
+  def signed_in?
+    !current_user.nil?
+  end
+
+  def current_user=(user)
+    @current_user = user
+  end
+
+  def current_user
+    remember_token = User.encrypt(cookies[:remember_token])
+    # ||=について => @current_user = @current_user || User.find_by(remember_token: remember_token)
+    # current_userが初めて呼び出される場合はfind_byメソッドを呼び出す (nil || User.find_by(remember_token: remember_token))
+    # 以後の呼び出しではデータベースにアクセスせずに@current_userを返す
+    @current_user ||= User.find_by(remember_token: remember_token)
+  end
+  
+end
